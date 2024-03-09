@@ -20,7 +20,10 @@ static const char *colors[][3]      = {
 };
 
 /* tagging */
-static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "N" };
+static const unsigned int scratchtag = 1 << 9;
+static const char scratchpadname[] = "urxvt-logbook";
+static const char *scratchpadcmd[] = {"urxvt", "-title", scratchpadname, "-e", "nvim", "~/logbook", NULL};
 
 static const Rule rules[] = {
 	/* xprop(1):
@@ -28,14 +31,15 @@ static const Rule rules[] = {
 	 *	WM_NAME(STRING) = title
 	 */
 
-  /* class,        instance, title,           tags mask, isfloating,  monitor */
-  { "Firefox",     NULL,     NULL,            1 << 3,    0,           0 },  {
-    NULL,          NULL,     "Telegram",      1 << 5,    0,           0 },  {
-    "uTox",        NULL,     NULL,            1 << 5,    0,           0 },  {
-    "nvim-qt",     NULL,     NULL,            1 << 6,    0,           1 },  {
-    "qutebrowser", NULL,     NULL,            1 << 8,    0,           1 },  {
-    "mpv",         NULL,     NULL,            1 << 2,    0,           0 },  {
-    NULL,          NULL,     "urxvt-cmus",    1 << 2,    0,           0 },
+  /* class,        instance, title,          tags mask,  isfloating, fx,  fy,  fw,  fh,  monitor */
+  { "Firefox",     NULL,     NULL,           1 << 3,     0,          -1,  -1,  -1,  -1,  0 },  {
+    NULL,          NULL,     "Telegram",     1 << 5,     0,          -1,  -1,  -1,  -1,  0 },  {
+    "uTox",        NULL,     NULL,           1 << 5,     0,          -1,  -1,  -1,  -1,  0 },  {
+    "nvim-qt",     NULL,     NULL,           1 << 6,     0,          -1,  -1,  -1,  -1,  1 },  {
+    "qutebrowser", NULL,     NULL,           1 << 8,     0,          -1,  -1,  -1,  -1,  1 },  {
+    "mpv",         NULL,     NULL,           1 << 2,     0,          -1,  -1,  -1,  -1,  0 },  {
+    NULL,          NULL,     "urxvt-cmus",   1 << 2,     0,          -1,  -1,  -1,  -1,  0 },  {
+    NULL,          NULL,     scratchpadname, scratchtag, 1,          0.6, 0.6, 0.4, 0.4, -1 },
 };
 
 /* layout(s) */
@@ -66,15 +70,13 @@ static const Layout layouts[] = {
 static const char *dmenucmd[] = { "dmenu_run", "-l", "20",  "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
 static const char *termcmd[]  = { "urxvt", "-e", "tmux", NULL };
 
-static const char scratchpadname[] = "urxvt-logbook";
-static const char *scratchpadcmd[] = {"urxvt", "-title", scratchpadname, "-e", "nvim", "~/logbook", NULL};
-
 void reload(const Arg* arg){
     execl("/usr/local/bin/dwm", "/usr/local/bin/dwm", NULL);
 }
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
+	{ MODKEY,                       XK_n,      togglescratch,  {.v = scratchpadcmd } },
 	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
 	{ MODKEY|ShiftMask,             XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,                       XK_e,      togglebar,      {0} },

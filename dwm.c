@@ -138,6 +138,7 @@ typedef struct {
 	const char *title;
 	unsigned int tags;
 	int isfloating;
+	float floatx, floaty, floatw, floath;
 	int monitor;
 } Rule;
 
@@ -212,6 +213,7 @@ static void tagmon(const Arg *arg);
 static void tile(Monitor *m);
 static void togglebar(const Arg *arg);
 static void togglefloating(const Arg *arg);
+static void togglescratch(const Arg *arg);
 static void toggletag(const Arg *arg);
 static void toggleview(const Arg *arg);
 static void unfocus(Client *c, int setfocus);
@@ -295,21 +297,27 @@ applyrules(Client *c)
 	for (i = 0; i < LENGTH(rules); i++) {
 		r = &rules[i];
 		if ((!r->title || strstr(c->name, r->title))
-		&& (!r->class || strstr(class, r->class))
-		&& (!r->instance || strstr(instance, r->instance)))
-		{
-			c->isfloating = r->isfloating;
-			c->tags |= r->tags;
-			for (m = mons; m && m->num != r->monitor; m = m->next);
-			if (m)
-				c->mon = m;
-		}
+			&& (!r->class || strstr(class, r->class))
+			&& (!r->instance || strstr(instance, r->instance)))
+			{
+				c->isfloating = r->isfloating;
+				c->tags |= r->tags;
+				for (m = mons; m && m->num != r->monitor; m = m->next);
+				if (m)
+					c->mon = m;
+				if(c->isfloating){
+					if (r->floatx >= 0) c->x = c->mon->mx + (int)((float)c->mon->mw * r->floatx);
+					if (r->floaty >= 0) c->y = c->mon->my + (int)((float)c->mon->mh * r->floaty);
+					if (r->floatw >= 0) c->w = (int)((float)c->mon->mw * r->floatw);
+					if (r->floath >= 0) c->h = (int)((float)c->mon->mh * r->floath);
+				}
+			}
 	}
 	if (ch.res_class)
 		XFree(ch.res_class);
 	if (ch.res_name)
 		XFree(ch.res_name);
-	c->tags = c->tags & TAGMASK ? c->tags & TAGMASK : c->mon->tagset[c->mon->seltags];
+    c->tags = c->tags & TAGMASK ? c->tags & TAGMASK : c->mon->tagset[c->mon->seltags];
 }
 
 int
@@ -1052,6 +1060,12 @@ manage(Window w, XWindowAttributes *wa)
 	c->y = MAX(c->y, c->mon->wy);
 	c->bw = borderpx;
 
+	selmon->tagset[selmon->seltags] &= ~scratchtag;
+    // if handling the scratchpad, show it right away
+	if (!strcmp(c->name, scratchpadname)) {
+		c->mon->tagset[c->mon->seltags] |= scratchtag;
+	}
+
 	wc.border_width = c->bw;
 	XConfigureWindow(dpy, w, CWBorderWidth, &wc);
 	XSetWindowBorder(dpy, w, scheme[SchemeNorm][ColBorder].pixel);
@@ -1639,6 +1653,7 @@ sigchld(int unused)
 void
 spawn(const Arg *arg)
 {
+	selmon->tagset[selmon->seltags] &= ~scratchtag;
 	if (fork() == 0) {
 		if (dpy)
 			close(ConnectionNumber(dpy));
@@ -1715,6 +1730,35 @@ togglefloating(const Arg *arg)
 		resize(selmon->sel, selmon->sel->x, selmon->sel->y,
 			selmon->sel->w, selmon->sel->h, 0);
 	arrange(selmon);
+}
+
+void
+togglescratch(const Arg *arg)
+{
+	Client *c;
+    Monitor *m;
+	unsigned int found = 0;
+
+    for (m = mons; m ; m=m->next) {
+        for (c = m->clients; c && !(found = c->tags & scratchtag); c = c->next);
+        if(found) break;
+    }
+	if (found) {
+        if(m!=selmon) {
+            sendmon(c,selmon);
+            // always show the scratchpad when moving it between mons
+			selmon->tagset[selmon->seltags] &= ~scratchtag;
+        }
+        applyrules(c);
+        selmon->tagset[selmon->seltags] ^= scratchtag;
+        focus(NULL);
+        arrange(selmon);
+		if (ISVISIBLE(c)) {
+			focus(c);
+			restack(selmon);
+		}
+	} else
+		spawn(arg);
 }
 
 void
