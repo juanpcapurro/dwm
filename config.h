@@ -10,18 +10,18 @@ static const int systraypinningfailfirst = 1;   /* 1: if pinning fails, display 
 static const int showsystray        = 1;        /* 0 means no systray */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 0;        /* 0 means bottom bar */
-static const char *fonts[]          = { "monospace:size=10" };
-static const char dmenufont[]       = "monospace:size=10";
-static const char col_gray1[]       = "#222222";
-static const char col_gray2[]       = "#444444";
-static const char col_gray3[]       = "#bbbbbb";
-static const char col_gray4[]       = "#eeeeee";
-static const char col_cyan[]        = "#005577";
-static const char col_red[]         = "#ff5370";
+static const char *fonts[]          = { "monospace:size=11" };
+static const char dmenufont[]       = "monospace:size=11";
+static const char norm_fg[]         = "#0abdc6";
+static const char norm_bg[]         = "#282828";
+static const char norm_border[]     = "#091833";
+static const char sel_fg[]          = "#FFFFFF";
+static const char sel_bg[]          = "#ea00d9";
+static const char sel_border[]      = "#ea00d9";
 static const char *colors[][3]      = {
-	/*               fg         bg         border   */
-	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
-	[SchemeSel]  = { col_gray4, col_cyan,  col_red  },
+    /*               fg       bg       border   */
+    [SchemeNorm] = { norm_fg, norm_bg, norm_border },
+    [SchemeSel]  = { sel_fg,  sel_bg,  sel_border  },
 };
 
 /* tagging */
@@ -36,15 +36,16 @@ static const Rule rules[] = {
 	 *	WM_NAME(STRING) = title
 	 */
 
-  /* class,        instance, title,          tags mask,  isfloating, fx,  fy,  fw,  fh,  monitor */
-  { "Firefox",     NULL,     NULL,           1 << 3,     0,          -1,  -1,  -1,  -1,  0 },  {
-    NULL,          NULL,     "Telegram",     1 << 5,     0,          -1,  -1,  -1,  -1,  0 },  {
-    "uTox",        NULL,     NULL,           1 << 5,     0,          -1,  -1,  -1,  -1,  0 },  {
-    "nvim-qt",     NULL,     NULL,           1 << 6,     0,          -1,  -1,  -1,  -1,  1 },  {
-    "qutebrowser", NULL,     NULL,           1 << 8,     0,          -1,  -1,  -1,  -1,  1 },  {
-    "mpv",         NULL,     NULL,           1 << 2,     0,          -1,  -1,  -1,  -1,  0 },  {
-    NULL,          NULL,     "urxvt-cmus",   1 << 2,     0,          -1,  -1,  -1,  -1,  0 },  {
-    NULL,          NULL,     scratchpadname, scratchtag, 1,          0.6, 0.6, 0.4, 0.4, -1 },
+  /* class,        instance, title,           tags mask,  isfloating, fx,   fy,   fw,  fh,  monitor */
+  { "Firefox",     NULL,     NULL,            1 << 3,     0,          -1,   -1,   -1,  -1,  0 },  {
+    NULL,          NULL,     "Telegram",      1 << 5,     0,          -1,   -1,   -1,  -1,  0 },  {
+    "uTox",        NULL,     NULL,            1 << 5,     0,          -1,   -1,   -1,  -1,  0 },  {
+    "nvim-qt",     NULL,     NULL,            1 << 6,     0,          -1,   -1,   -1,  -1,  1 },  {
+    "qutebrowser", NULL,     NULL,            1 << 8,     0,          -1,   -1,   -1,  -1,  1 },  {
+    "mpv",         NULL,     NULL,            1 << 2,     0,          -1,   -1,   -1,  -1,  0 },  {
+    NULL,          NULL,     "URxvt-managed", 1 << 1,     0,          -1,   -1,   -1,  -1,  0 },  {
+    NULL,          NULL,     "urxvt-cmus",    1 << 2,     0,          -1,   -1,   -1,  -1,  0 },  {
+    NULL,          NULL,     scratchpadname,  scratchtag, 1,          0.59, 0.58, 0.4, 0.4, -1 },
 };
 
 /* layout(s) */
@@ -72,8 +73,8 @@ static const Layout layouts[] = {
 #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
 
 /* commands */
-static const char *dmenucmd[] = { "dmenu_run", "-l", "20",  "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
-static const char *termcmd[]  = { "urxvt", "-e", "tmux", NULL };
+static const char *dmenucmd[] = { "dmenu_run", "-l", "20",  "-nb", norm_bg, "-nf", norm_fg, "-sb", sel_bg, "-sf", sel_fg, NULL };
+static const char *termcmd[]  = { "urxvt", "-title", "URxvt-managed", "-e", "tmux", NULL };
 
 void reload(const Arg* arg){
     execl("/usr/local/bin/dwm", "/usr/local/bin/dwm", NULL);
